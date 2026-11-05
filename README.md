@@ -49,6 +49,6 @@ Each package owns only this provider and its passive documentation. Its `Replace
 ## Two installed clock files
 
 The installation owns the .so under /System/Resources/Clocks/ and the
-illustrated public PDF under /System/Resources/Documentation/Clock-Nuremberg-Hours/.
+illustrated public PDF under /System/Resources/Documentation/Clock-Nuremberg-Hours.pdf.
 Engineering documentation and audit evidence remain in GitHub; dpkg
 preserves native build metadata without installed BUILD-INFO.

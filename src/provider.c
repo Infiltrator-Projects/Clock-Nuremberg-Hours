@@ -2,14 +2,11 @@
 /* Seasonal clock resources. Sole owner of clock-face arithmetic and scheduling. */
 
 #define CLOCK_ID "nuremberg-hours"
-#define CLOCK_SECONDS true
-#define CLOCK_LOCATION false
 #include <infiltratr/temporal_clock_resource.h>
 #include "temporal_solar_compact.h"
 
 #include "infiltratr/arithmetic.h"
 #include "infiltratr/core.h"
-#include "infiltratr/i18n.h"
 #include "infiltratr/timing.h"
 
 #include <math.h>
@@ -106,8 +103,6 @@ typedef struct SeasonalPeriod {
 
 static bool nuremberg_historical_hour_allocation(
     int64_t unix_microseconds,
-    unsigned *day_hours,
-    unsigned *night_hours,
     long double *day_start,
     long double *day_end)
 {
@@ -130,8 +125,7 @@ static bool nuremberg_historical_hour_allocation(
     unsigned count = 8U;
     size_t index;
 
-    if (day_hours == NULL || night_hours == NULL ||
-        day_start == NULL || day_end == NULL ||
+    if (day_start == NULL || day_end == NULL ||
         !temporal_solar_day_of_year_with_leap(unix_microseconds, &day_of_year, &leap)) {
         return false;
     }
@@ -147,8 +141,6 @@ static bool nuremberg_historical_hour_allocation(
         count = allocations[index];
     }
 
-    *day_hours = count;
-    *night_hours = 24U - count;
     *day_start =
         ((long double)(24U - count) / 2.0L) * SECONDS_PER_HOUR;
     *day_end = *day_start + (long double)count * SECONDS_PER_HOUR;
@@ -160,15 +152,9 @@ static bool format_nuremberg_hours(char *buffer,
                                    size_t *length,
                                    int64_t unix_microseconds,
                                    bool show_seconds,
-                                   bool vertical,
-                                   bool historical,
-                                   double latitude,
-                                   double longitude)
+                                   bool vertical)
 {
-    (void)historical; (void)latitude; (void)longitude;
     static const double nuremberg_longitude = 11.0767;
-    unsigned day_hours;
-    unsigned night_hours;
     long double day_start;
     long double day_end;
     const double clock_longitude = nuremberg_longitude;
@@ -183,8 +169,7 @@ static bool format_nuremberg_hours(char *buffer,
     bool ok;
 
     ok = nuremberg_historical_hour_allocation(
-            unix_microseconds, &day_hours, &night_hours,
-            &day_start, &day_end);
+            unix_microseconds, &day_start, &day_end);
     if (!ok) {
         return write_text(buffer, capacity, length,
                           vertical ? "N/A\nNUR" : "N/A NUR");
@@ -199,9 +184,6 @@ static bool format_nuremberg_hours(char *buffer,
             : (long double)SECONDS_PER_DAY - day_end + solar;
         suffix = "NUR-N";
     }
-    (void)day_hours;
-    (void)night_hours;
-
     hour = (int)floorl(elapsed / SECONDS_PER_HOUR);
     minute = (int)floorl(
         fmodl(elapsed, (long double)SECONDS_PER_HOUR) /
@@ -217,127 +199,17 @@ static bool format_nuremberg_hours(char *buffer,
             snprintf(buffer, capacity, "%02d%s%02d%s%s", hour, separator, minute, vertical ? "\n" : " ", suffix));
 }
 
-static bool mode_location_valid(const InfiltratrTemporalClockModeInfo *info,
-                                bool location_configured,
-                                double latitude,
-                                double longitude)
-{
-    if (info == NULL) {
-        return false;
-    }
-    if ((info->requires_latitude || info->requires_longitude) &&
-        !location_configured) {
-        return false;
-    }
-    return (!info->requires_latitude ||
-            (isfinite(latitude) && latitude >= -90.0 && latitude <= 90.0)) &&
-           (!info->requires_longitude ||
-            (isfinite(longitude) && longitude >= -180.0 &&
-             longitude <= 180.0));
-}
-
-
-/* Names are transliterated proper names, not animal/help labels. Wording
- * belongs to the selected language; the shared phase calculation stays below. */
-#define CLOCK_REMAINING_WORDS(hour, watch, twelfth, twelfths) \
-    { "hour", hour }, { "watch", watch }, \
-    { "twelfth", twelfth }, { "twelfths", twelfths }
-#define JAPANESE_BRANCHES \
-    { "jp-ne", "Ne" }, { "jp-ushi", "Ushi" }, { "jp-tora", "Tora" }, \
-    { "jp-u", "U" }, { "jp-tatsu", "Tatsu" }, { "jp-mi", "Mi" }, \
-    { "jp-uma", "Uma" }, { "jp-hitsuji", "Hitsuji" }, { "jp-saru", "Saru" }, \
-    { "jp-tori", "Tori" }, { "jp-inu", "Inu" }, { "jp-i", "I" }
-#define JAPANESE_NATIVE_BRANCHES \
-    { "jp-ne", "子" }, { "jp-ushi", "丑" }, { "jp-tora", "寅" }, \
-    { "jp-u", "卯" }, { "jp-tatsu", "辰" }, { "jp-mi", "巳" }, \
-    { "jp-uma", "午" }, { "jp-hitsuji", "未" }, { "jp-saru", "申" }, \
-    { "jp-tori", "酉" }, { "jp-inu", "戌" }, { "jp-i", "亥" }
-#define EDO_WORDS(horizontal, vertical) \
-    { "edo", horizontal }, { "edo-vertical", vertical }
-
-
-#undef CLOCK_REMAINING_WORDS
-#undef JAPANESE_BRANCHES
-#undef JAPANESE_NATIVE_BRANCHES
-#undef EDO_WORDS
-
-#define CLOCK_CATALOG(locale, entries) \
-    { locale, entries, sizeof(entries) / sizeof((entries)[0]) }
-
-#undef CLOCK_CATALOG
-
-
-static bool format_clock_mode(const InfiltratrI18n *language,
-                                           const char *mode,
-                                           int64_t unix_microseconds,
-                                           int32_t utc_offset_seconds,
-                                           bool show_seconds,
-                                           bool vertical,
-                                           bool location_configured,
-                                           double latitude,
-                                           double longitude,
-                                           char *buffer,
-                                           size_t capacity,
-                                           size_t *length)
-{
-    (void)language; (void)mode;
-    const InfiltratrTemporalClockModeInfo *info;
-
-    // The extension modes use absolute instants and, when applicable, the
-    // selected solar location. Civil UTC offsets remain part of the stable
-    // caller contract, but do not affect this custom-mode renderer.
-    (void)utc_offset_seconds;
-    if (buffer == NULL || capacity == 0U || mode == NULL) {
-        return false;
-    }
-    buffer[0] = '\0';
-
-    const InfiltratrTemporalClockModeInfo selected = {
-        CLOCK_ID, INFILTRATR_TEMPORAL_DISPLAY_NAME, CLOCK_SECONDS, CLOCK_LOCATION, CLOCK_LOCATION
-    };
-    info = strcmp(mode, CLOCK_ID) == 0 ? &selected : NULL;
-    if (info == NULL ||
-        !mode_location_valid(
-            info, location_configured, latitude, longitude)) {
-        return false;
-    }
-
-    ;
-
-    ;
-
-    {
-        return format_nuremberg_hours(
-            buffer, capacity, length, unix_microseconds,
-            show_seconds, vertical, true, 0.0, 0.0);
-    }
-
-    ;
-
-    return false;
-}
-
-static bool seasonal_format_clock_mode(const char *mode,
-    int64_t unix_microseconds, int32_t utc_offset_seconds,
-    bool show_seconds, bool vertical, bool location_configured,
-    double latitude, double longitude,
-    char *buffer, size_t capacity, size_t *length)
-{
-    (void)mode;
-    return format_clock_mode(NULL, mode, unix_microseconds, utc_offset_seconds,
-        show_seconds, vertical, location_configured, latitude, longitude,
-        buffer, capacity, length);
-}
-
-
 static bool render(const InfiltratrTemporalClockProvider *self,
     const char *locale, int64_t instant, int32_t offset, bool seconds,
     bool vertical, double latitude, double longitude,
     char *buffer, size_t capacity, size_t *length)
 {
     (void)self; (void)locale;
-    return seasonal_format_clock_mode(CLOCK_ID, instant, offset, seconds,
-        vertical, true, latitude, longitude, buffer, capacity, length);
+    (void)offset;
+    (void)latitude;
+    (void)longitude;
+    return format_nuremberg_hours(buffer, capacity, length, instant,
+                                  seconds, vertical);
 }
 
 /* Bracket and refine the first visible boundary against this very renderer.

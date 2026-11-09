@@ -218,7 +218,10 @@ static bool next_tick(const InfiltratrTemporalClockProvider *self,
 {
     char initial[256], future[256];
     uint32_t low = 0U, high = 1U, step = 1U;
-    const uint32_t maximum = 129600000U;
+    /* This clock advances continuously: a visible tick occurs within one
+     * minute (or one second when enabled). Do not search 36 hours when a
+     * renderer has stopped changing. */
+    const uint32_t maximum = seconds ? 5000U : 120000U;
     (void)self;
     if (milliseconds == NULL || !render(NULL, NULL, instant, offset, seconds,
             false, latitude, longitude, initial, sizeof(initial), NULL))

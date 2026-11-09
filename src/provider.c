@@ -18,7 +18,6 @@
 #define SECONDS_PER_HOUR INT64_C(3600)
 #define SECONDS_PER_DAY INT64_C(86400)
 #define MICROSECONDS_PER_DAY (SECONDS_PER_DAY * MICROSECONDS_PER_SECOND)
-#define INFILTRATR_PI 3.141592653589793238462643383279502884L
 
 static bool write_text(char *buffer, size_t capacity, size_t *length,
                        const char *text)
@@ -94,13 +93,6 @@ static long double apparent_solar_seconds(int64_t unix_microseconds,
 }
 
 
-typedef struct SeasonalPeriod {
-    bool daylight;
-    unsigned index;
-    long double fraction;
-} SeasonalPeriod;
-
-
 static bool nuremberg_historical_hour_allocation(
     int64_t unix_microseconds,
     long double *day_start,
@@ -162,9 +154,8 @@ static bool format_nuremberg_hours(char *buffer,
     static const double nuremberg_longitude = 11.0767;
     long double day_start;
     long double day_end;
-    const double clock_longitude = nuremberg_longitude;
     const long double solar =
-        apparent_solar_seconds(unix_microseconds, clock_longitude);
+        apparent_solar_seconds(unix_microseconds, nuremberg_longitude);
     long double elapsed;
     int hour;
     int minute;

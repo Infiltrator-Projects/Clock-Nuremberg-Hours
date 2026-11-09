@@ -154,6 +154,11 @@ static bool format_nuremberg_hours(char *buffer,
                                    bool show_seconds,
                                    bool vertical)
 {
+    /* The public ABI must reject invalid output storage before snprintf. */
+    if (buffer == NULL || capacity == 0U) {
+        return false;
+    }
+
     static const double nuremberg_longitude = 11.0767;
     long double day_start;
     long double day_end;

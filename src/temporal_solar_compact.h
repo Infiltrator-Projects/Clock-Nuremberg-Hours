@@ -2,12 +2,8 @@
 #ifndef INFILTRATR_TEMPORAL_SOLAR_COMPACT_H
 #define INFILTRATR_TEMPORAL_SOLAR_COMPACT_H
 /*
- * Private NOAA/GML compact solar model. Independently linked clock resources
- * compile these same equations without linking to another provider.
- *
- * Input: signed Unix microseconds. Outputs: equation of time in minutes,
- * solar declination in radians. This model is not an observational ephemeris.
- * Callers own historical interpretation and sunrise/sunset conventions.
+ * Compact NOAA/GML equation-of-time terms used by the Nuremberg clock.
+ * Input is signed Unix microseconds. The model is not an ephemeris.
  */
 #include <stdbool.h>
 #include <stdint.h>
@@ -56,11 +52,6 @@ static inline bool temporal_solar_day_of_year_with_leap(int64_t instant,
     return true;
 }
 
-static inline bool temporal_solar_day_of_year(int64_t instant, int *ordinal)
-{
-    return temporal_solar_day_of_year_with_leap(instant, ordinal, NULL);
-}
-
 static inline bool temporal_solar_compact_terms(int64_t instant,
                                                 double *equation_minutes,
                                                 double *declination_radians)
@@ -98,61 +89,12 @@ static inline bool temporal_solar_compact_terms(int64_t instant,
     return true;
 }
 
-/* Geographic bounds shared by clock providers, without relaxing their ABI. */
-static inline bool temporal_solar_valid_longitude(double longitude)
-{
-    return isfinite(longitude) && longitude >= -180.0 && longitude <= 180.0;
-}
-
-static inline double temporal_solar_clamp_coordinate(double value, double limit)
-{
-    if (!isfinite(value)) return 0.0;
-    if (value < -limit) return -limit;
-    if (value > limit) return limit;
-    return value;
-}
-
+/* Keep the fixed civic longitude within the model's stated range. */
 static inline double temporal_solar_clamp_longitude(double longitude)
 {
-    return temporal_solar_clamp_coordinate(longitude, 180.0);
-}
-
-static inline double temporal_solar_clamp_latitude(double latitude)
-{
-    return temporal_solar_clamp_coordinate(latitude, 90.0);
-}
-
-/* One solar hour-angle equation for absolute clock resources and elapsed
- * seasonal durations. Each caller still owns its event-time and era rules.
- * Failed/polar geometry does not modify the caller's result. */
-static inline bool temporal_solar_hour_angle(
-    double latitude, double declination_radians,
-    double solar_depression_degrees, long double *angle_radians)
-{
-    const long double pi = 3.141592653589793238462643383279502884L;
-    const double latitude_radians =
-        temporal_solar_clamp_latitude(latitude) * (double)pi / 180.0;
-    double zenith_radians;
-    double cosine_lat_decl;
-    double cosine_hour_angle;
-
-    if (angle_radians == NULL ||
-        !isfinite(declination_radians) ||
-        !isfinite(solar_depression_degrees) ||
-        solar_depression_degrees < 0.0 ||
-        solar_depression_degrees >= 90.0) {
-        return false;
-    }
-    zenith_radians =
-        (90.0 + solar_depression_degrees) * (double)pi / 180.0;
-    cosine_lat_decl = cos(latitude_radians) * cos(declination_radians);
-    if (fabs(cosine_lat_decl) < 1.0e-12) return false;
-
-    cosine_hour_angle = cos(zenith_radians) / cosine_lat_decl -
-        tan(latitude_radians) * tan(declination_radians);
-    if (cosine_hour_angle < -1.0 || cosine_hour_angle > 1.0) return false;
-
-    *angle_radians = acosl((long double)cosine_hour_angle);
-    return true;
+    if (!isfinite(longitude)) return 0.0;
+    if (longitude < -180.0) return -180.0;
+    if (longitude > 180.0) return 180.0;
+    return longitude;
 }
 #endif

@@ -262,7 +262,7 @@ static const InfiltratrTemporalResourceMetadata metadata = {
     sizeof(InfiltratrTemporalResourceMetadata),
     INFILTRATR_TEMPORAL_RESOURCE_METADATA_ABI,
     INFILTRATR_TEMPORAL_RESOURCE_CLOCK, CLOCK_ID, INFILTRATR_TEMPORAL_DISPLAY_NAME,
-    CLOCK_SECONDS, CLOCK_LOCATION, CLOCK_LOCATION
+    true, false, false
 };
 static const InfiltratrTemporalClockProvider provider = {
     sizeof(InfiltratrTemporalClockProvider),

@@ -58,6 +58,13 @@ static int64_t positive_modulo(int64_t value, int64_t modulus)
     return remainder;
 }
 
+/* Canonical signed day wrap for mean and apparent solar phases. */
+static long double normalize_solar_day(long double seconds)
+{
+    seconds = fmodl(seconds, (long double)SECONDS_PER_DAY);
+    return seconds < 0.0L ? seconds + (long double)SECONDS_PER_DAY : seconds;
+}
+
 static long double mean_solar_seconds(int64_t unix_microseconds,
                                       double longitude)
 {
@@ -67,11 +74,7 @@ static long double mean_solar_seconds(int64_t unix_microseconds,
         (long double)utc_microseconds / MICROSECONDS_PER_SECOND +
         (long double)temporal_solar_clamp_longitude(longitude) * 240.0L;
 
-    seconds = fmodl(seconds, (long double)SECONDS_PER_DAY);
-    if (seconds < 0.0L) {
-        seconds += (long double)SECONDS_PER_DAY;
-    }
-    return seconds;
+    return normalize_solar_day(seconds);
 }
 
 static long double apparent_solar_seconds(int64_t unix_microseconds,
@@ -85,11 +88,7 @@ static long double apparent_solar_seconds(int64_t unix_microseconds,
     }
     seconds = mean_solar_seconds(unix_microseconds, longitude) +
               (long double)equation_minutes * 60.0L;
-    seconds = fmodl(seconds, (long double)SECONDS_PER_DAY);
-    if (seconds < 0.0L) {
-        seconds += (long double)SECONDS_PER_DAY;
-    }
-    return seconds;
+    return normalize_solar_day(seconds);
 }
 
 

@@ -4,12 +4,68 @@
   "structure": "Daylight allocation varies from 8 to 16 hours over the annual schedule, with the complementary number assigned to night. The day interval is centred on apparent solar noon at Nuremberg. NUR-D counts from the scheduled day start; NUR-N counts from the scheduled night start. Both begin at zero.",
   "sections": [
     {
-      "name": "Increasing allocation",
-      "days": "Day of year 16: 9 h; 37: 10 h; 54: 11 h; 71: 12 h; 87: 13 h; 104: 14 h; 122: 15 h; 144: 16 h"
+      "name": "Day of year 16",
+      "days": "9 day hours / 15 night hours"
     },
     {
-      "name": "Decreasing allocation",
-      "days": "Day of year 201: 15 h; 223: 14 h; 241: 13 h; 257: 12 h; 274: 11 h; 290: 10 h; 309: 9 h; 329: 8 h"
+      "name": "Day of year 37",
+      "days": "10 day hours / 14 night hours"
+    },
+    {
+      "name": "Day of year 54",
+      "days": "11 day hours / 13 night hours"
+    },
+    {
+      "name": "Day of year 71",
+      "days": "12 day hours / 12 night hours"
+    },
+    {
+      "name": "Day of year 87",
+      "days": "13 day hours / 11 night hours"
+    },
+    {
+      "name": "Day of year 104",
+      "days": "14 day hours / 10 night hours"
+    },
+    {
+      "name": "Day of year 122",
+      "days": "15 day hours / 9 night hours"
+    },
+    {
+      "name": "Day of year 144",
+      "days": "16 day hours / 8 night hours"
+    },
+    {
+      "name": "Day of year 201",
+      "days": "15 day hours / 9 night hours"
+    },
+    {
+      "name": "Day of year 223",
+      "days": "14 day hours / 10 night hours"
+    },
+    {
+      "name": "Day of year 241",
+      "days": "13 day hours / 11 night hours"
+    },
+    {
+      "name": "Day of year 257",
+      "days": "12 day hours / 12 night hours"
+    },
+    {
+      "name": "Day of year 274",
+      "days": "11 day hours / 13 night hours"
+    },
+    {
+      "name": "Day of year 290",
+      "days": "10 day hours / 14 night hours"
+    },
+    {
+      "name": "Day of year 309",
+      "days": "9 day hours / 15 night hours"
+    },
+    {
+      "name": "Day of year 329",
+      "days": "8 day hours / 16 night hours"
     }
   ],
   "example": "With a 16-hour day allocation, day begins at 04:00 apparent solar time and ends at 20:00. At apparent solar noon the display is 08:00 NUR-D; at apparent midnight it is 04:00 NUR-N.",

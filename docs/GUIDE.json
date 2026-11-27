@@ -1,0 +1,24 @@
+{
+  "title": "Historical Nuremberg Great Clock",
+  "intro": "The Nuremberg Great Clock represents the historical civic convention of counting separate equal day and night hours, with their allocation changing on prescribed turning days (Wendetage).",
+  "structure": "Daylight allocation varies from 8 to 16 hours over the annual schedule, with the complementary number assigned to night. The day interval is centred on apparent solar noon at Nuremberg. NUR-D counts from the scheduled day start; NUR-N counts from the scheduled night start. Both begin at zero.",
+  "sections": [
+    {
+      "name": "Increasing allocation",
+      "days": "Day of year 16: 9 h; 37: 10 h; 54: 11 h; 71: 12 h; 87: 13 h; 104: 14 h; 122: 15 h; 144: 16 h"
+    },
+    {
+      "name": "Decreasing allocation",
+      "days": "Day of year 201: 15 h; 223: 14 h; 241: 13 h; 257: 12 h; 274: 11 h; 290: 10 h; 309: 9 h; 329: 8 h"
+    }
+  ],
+  "example": "With a 16-hour day allocation, day begins at 04:00 apparent solar time and ends at 20:00. At apparent solar noon the display is 08:00 NUR-D; at apparent midnight it is 04:00 NUR-N.",
+  "history": "The fixed schedule projects the documented 1488 Julian turning days onto their proleptic Gregorian seasonal equivalents (nine days later at that epoch). It is not a daily measured sunrise/sunset schedule.",
+  "model": "Use Gregorian day of year; leap years shift thresholds from day 71 onward by one day. The provider uses fixed Nuremberg longitude 11.0767 degrees east and compact apparent solar time. For N allocated day hours, start = (24-N)/2 and end = start+N. Count elapsed equal hours from the selected boundary, wrap night across midnight, and schedule the next rendered change.",
+  "limits": "The user's coordinates and civil offset do not affect this fixed historical-city profile. Its annual repetition and modern solar approximation do not establish exact historic clock readings. The Nuremberg-style local solar provider is a separate model.",
+  "sources": [
+    "Implementation: https://github.com/Infiltrator-Projects/Clock-Nuremberg-Hours/blob/main/src/provider.c",
+    "Model evidence: https://github.com/Infiltrator-Projects/Clock-Nuremberg-Hours/blob/main/docs/MODEL.md",
+    "Shared contract: https://github.com/Infiltrator-Projects/Libraries/blob/main/docs/TEMPORAL_PROVIDERS.md"
+  ]
+}
